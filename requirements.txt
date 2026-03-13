@@ -1,0 +1,37 @@
+# Core numerical and data processing
+numpy>=1.21.0,<2.0.0
+pandas>=1.3.0,<3.0.0
+scipy>=1.7.0,<2.0.0
+
+# Machine learning
+scikit-learn>=1.0.0,<2.0.0
+
+# Visualization
+matplotlib>=3.4.0,<4.0.0
+seaborn>=0.11.0,<1.0.0
+
+# Geophysical data processing
+segyio>=1.9.0
+
+# Excel file support
+openpyxl>=3.0.0
+xlrd>=2.0.0
+
+# Jupyter support (optional, for notebook compatibility)
+ipython>=7.0.0
+jupyter>=1.0.0
+notebook>=6.4.0
+
+# Additional utilities
+tqdm>=4.62.0
+arviz>=0.15.0  # For MCMC diagnostics and visualization
+
+# Development tools
+pytest>=7.0.0
+black>=22.0.0
+flake8>=4.0.0
+isort>=5.10.0
+pylint>=2.12.0
+
+# Type checking
+mypy>=0.950

@@ -1,0 +1,58 @@
+# *
+# !requirements.txt
+# !.devcontainer
+# !rockPropCalculator
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data files (large files)
+*.sgy
+*.segy
+Data/*.xlsx
+Data/*.xls
+DataFiles/*.xlsx
+DataFiles/*.xls
+
+# Results
+FiguresAndResults/
+*.png
+*.jpg
+*.pdf
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Logs
+logs/
+*.log
+
+# Documentation
+*.md
+!README.md

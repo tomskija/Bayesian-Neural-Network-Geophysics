@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  bakken-bnn:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    container_name: bakken-bnn-dev
+    volumes:
+      - .:/workspace:cached
+      - bakken-data:/workspace/rockPropCalculator/Data
+      - bakken-results:/workspace/rockPropCalculator/FiguresAndResults
+    working_dir: /workspace/rockPropCalculator
+    command: /bin/bash
+    stdin_open: true
+    tty: true
+    ports:
+      - "8000:8000"
+      - "5000:5000"
+      - "8888:8888"  # For Jupyter
+    environment:
+      - PYTHONPATH=/workspace/rockPropCalculator
+      - PYTHONUNBUFFERED=1
+
+volumes:
+  bakken-data:
+    driver: local
+  bakken-results:
+    driver: local

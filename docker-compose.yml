@@ -1,0 +1,160 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database (Optional)
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: weather_forecast_db
+      POSTGRES_USER: weather_user
+      POSTGRES_PASSWORD: weather_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql/init_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./sql/seed_data.sql:/docker-entrypoint-initdb.d/02_seed.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U weather_user -d weather_forecast_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    profiles: ["database", "full"]
+
+  # Redis Cache (Optional)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    profiles: ["database", "full"]
+
+  # pgAdmin Database Management (Optional)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@weather.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    profiles: ["database", "full"]
+
+  # Weather Application (Production - File-based)
+  weather-app:
+    build:
+      context: .
+      target: production
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/app
+      - ENV=production
+    volumes:
+      - ./weatherForcastingCalculator/Data:/app/weatherForcastingCalculator/Data:rw
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health", "||", "exit", "1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Weather Application with Database (Production)
+  weather-app-db:
+    build:
+      context: .
+      target: production
+    ports:
+      - "8001:8000"
+    environment:
+      - PYTHONPATH=/app
+      - ENV=production
+      - DATABASE_URL=postgresql://weather_user:weather_pass@postgres:5432/weather_forecast_db
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - ./weatherForcastingCalculator/Data:/app/weatherForcastingCalculator/Data:rw
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health", "||", "exit", "1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    profiles: ["database", "full"]
+
+  # Weather Application (Development - File-based)
+  weather-app-dev:
+    build:
+      context: .
+      target: development
+    ports:
+      - "8002:8000"
+      - "5000:5000"
+    environment:
+      - PYTHONPATH=/workspace
+      - ENV=development
+      - DEBUG=true
+    volumes:
+      - .:/workspace:cached
+      - /workspace/.devcontainer
+    command: tail -f /dev/null  # Keep container running for development
+    restart: unless-stopped
+
+  # Weather Application Development with Database
+  weather-app-dev-db:
+    build:
+      context: .
+      target: development
+    ports:
+      - "8003:8000"
+      - "5001:5000"
+    environment:
+      - PYTHONPATH=/workspace
+      - ENV=development
+      - DEBUG=true
+      - DATABASE_URL=postgresql://weather_user:weather_pass@postgres:5432/weather_forecast_db
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - .:/workspace:cached
+      - /workspace/.devcontainer
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: tail -f /dev/null  # Keep container running for development
+    restart: unless-stopped
+    profiles: ["database", "full"]
+
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  default:
+    driver: bridge

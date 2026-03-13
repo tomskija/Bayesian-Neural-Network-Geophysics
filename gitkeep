@@ -1,0 +1,6 @@
+# In your terminal (inside the container or locally)
+touch rockPropCalculator/Data/.gitkeep
+touch rockPropCalculator/DataLoad/.gitkeep
+touch rockPropCalculator/FiguresAndResults/.gitkeep
+touch logs/.gitkeep
+touch tests/.gitkeep
